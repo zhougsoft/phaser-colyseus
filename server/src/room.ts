@@ -43,7 +43,7 @@ export class MainRoom extends Room<State> {
   }
 
   /**
-   * When client a successfully joins the room
+   * When a client successfully joins the room
    */
   onJoin(client: Client, options: any) {
     console.log(client.sessionId, 'joined!')

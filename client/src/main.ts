@@ -61,8 +61,8 @@ class GameScene extends Phaser.Scene {
         // Listen for server updates from this other player
         player.onChange(() => {
           // Update local sprite's state with the server's updated data
-          sprite.x = player.x
-          sprite.y = player.y
+          sprite.setData('serverX', player.x)
+          sprite.setData('serverY', player.y)
         })
 
         // Alternatively, you can listen to individual properties:
@@ -88,16 +88,23 @@ class GameScene extends Phaser.Scene {
    * Runs once per frame
    */
   update(_time: number, _delta: number): void {
-    // Skip loop if missing things
-    if (!this.room || !this.cursorKeys) return
+    // Interpolate all player sprite positions
+    for (let sessionId in this.playerSprites) {
+      const sprite = this.playerSprites[sessionId]
+      const { serverX, serverY } = sprite.data.values
+      sprite.x = Phaser.Math.Linear(sprite.x, serverX, 0.2)
+      sprite.y = Phaser.Math.Linear(sprite.y, serverY, 0.2)
+    }
 
     // Update local player input
+    if (!this.cursorKeys) return
     this.playerInput.left = this.cursorKeys.left.isDown
     this.playerInput.right = this.cursorKeys.right.isDown
     this.playerInput.up = this.cursorKeys.up.isDown
     this.playerInput.down = this.cursorKeys.down.isDown
 
     // Send updated local player input to server as payload for movement calculation
+    if (!this.room) return
     this.room.send(0, this.playerInput)
   }
 }
