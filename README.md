@@ -4,18 +4,9 @@
 
 ### getting started
 
-1. server - install dependencies & run:
-   ```bash
-   cd server
-   npm install
-   npm run dev
-   ```
-1. client - install dependencies & run:
-   ```bash
-   cd client
-   npm install
-   npm run dev
-   ```
+1. install dependencies: `npm install`
+1. run server: `npm run server`
+1. run client: `npm run client`
 
 - the client will be running at [http://localhost:5173](http://localhost:5173)
 - the server will be running at [http://localhost:6969](http://localhost:6969)

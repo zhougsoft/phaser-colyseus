@@ -109,7 +109,7 @@ class GameScene extends Phaser.Scene {
     if (!this.room || !this.currentPlayerSprite) return
 
     // Interpolate all player sprite positions
-    for (let sessionId in this.playerSprites) {
+    for (const sessionId in this.playerSprites) {
       // Skip interpolation for the current player
       if (sessionId === this.room.sessionId) continue
 
