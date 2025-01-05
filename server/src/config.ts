@@ -10,6 +10,9 @@ export const colyseusConfig = config({
      * Define your room handlers:
      */
     gameServer.define('main_room', MainRoom)
+
+    // You can simulate network latency with the `simulateLatency` method:
+    // gameServer.simulateLatency(200)
   },
 
   initializeExpress: app => {

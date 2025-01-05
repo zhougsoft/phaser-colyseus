@@ -1,13 +1,23 @@
 import { Room, Client } from '@colyseus/core'
 import { MapSchema, Schema, type } from '@colyseus/schema'
 
+// These constants should match the clients's constants (TODO: put in a shared package)
 const MAP_WIDTH = 800
 const MAP_HEIGHT = 600
 const MOVEMENT_VELOCITY = 2
+const FIXED_TIME_STEP = 1000 / 60
+
+interface InputPayload {
+  up: number
+  down: number
+  left: number
+  right: number
+}
 
 export class Player extends Schema {
   @type('number') x: number
   @type('number') y: number
+  inputQueue: InputPayload[] = []
 }
 
 export class State extends Schema {
@@ -18,32 +28,59 @@ export class MainRoom extends Room<State> {
   maxClients = 5
 
   /**
-   * When room is initialized
+   * Runs once per game tick; this is the core game loop, do logic updates here to synchronize across clients
    */
-  onCreate(options: any) {
-    this.setState(new State())
+  fixedUpdate(deltaTime: number) {
+    // Loop through each player and dequeue/apply their inputs
+    // NOTE: This logic should match the logic on the client (TODO: put in a shared package)
+    this.state.players.forEach(player => {
+      let playerInput: InputPayload
 
-    // Handle player input
-    this.onMessage(0, (client, payload) => {
-      // Get reference to the player who sent the message
-      const player = this.state.players.get(client.sessionId)
+      while ((playerInput = player.inputQueue.shift())) {
+        if (playerInput.left) {
+          player.x -= MOVEMENT_VELOCITY
+        } else if (playerInput.right) {
+          player.x += MOVEMENT_VELOCITY
+        }
 
-      if (payload.left) {
-        player.x -= MOVEMENT_VELOCITY
-      } else if (payload.right) {
-        player.x += MOVEMENT_VELOCITY
-      }
-
-      if (payload.up) {
-        player.y -= MOVEMENT_VELOCITY
-      } else if (payload.down) {
-        player.y += MOVEMENT_VELOCITY
+        if (playerInput.up) {
+          player.y -= MOVEMENT_VELOCITY
+        } else if (playerInput.down) {
+          player.y += MOVEMENT_VELOCITY
+        }
       }
     })
   }
 
   /**
-   * When a client successfully joins the room
+   * Runs when the room is initialized
+   */
+  onCreate(options: any) {
+    // Initialize the room state
+    this.setState(new State())
+
+    // Initialize fixed time step update loop
+    let accumulatedDeltaTime = 0
+    this.setSimulationInterval(deltaTime => {
+      accumulatedDeltaTime += deltaTime
+      while (accumulatedDeltaTime >= FIXED_TIME_STEP) {
+        accumulatedDeltaTime -= FIXED_TIME_STEP
+        this.fixedUpdate(deltaTime)
+      }
+    })
+
+    // Handle player input
+    this.onMessage(0, (client, payload: InputPayload) => {
+      // Get reference to the player who sent the message
+      const player = this.state.players.get(client.sessionId)
+
+      // Enqueue input to player's input buffer
+      player.inputQueue.push(payload)
+    })
+  }
+
+  /**
+   * Runs when a client successfully joins the room
    */
   onJoin(client: Client, options: any) {
     console.log(client.sessionId, 'joined!')
@@ -67,7 +104,7 @@ export class MainRoom extends Room<State> {
   }
 
   /**
-   * Cleanup callback, called after there are no more clients in the room. (see `autoDispose`)
+   * Cleanup callback; runs when there are no more clients in the room
    */
   onDispose() {
     console.log('room', this.roomId, 'disposing...')

@@ -5,10 +5,11 @@ import characterImage from './assets/character.png'
 
 const SERVER_URL = 'ws://localhost:6969'
 
-// These constants should match the server's constants
+// These constants should match the server's constants (TODO: put in a shared package)
 const MAP_WIDTH = 800
 const MAP_HEIGHT = 600
 const MOVEMENT_VELOCITY = 2
+const FIXED_TIME_STEP = 1000 / 60
 
 interface Player extends Schema {
   x: number
@@ -22,6 +23,7 @@ interface State extends Schema {
 class GameScene extends Phaser.Scene {
   client: Client
   room: Room<State> | null = null
+  accumulatedDeltaTime: number = 0
 
   playerSprites: { [sessionId: string]: Phaser.GameObjects.Sprite } = {}
   currentPlayerSprite: Phaser.GameObjects.Sprite | null = null
@@ -104,18 +106,31 @@ class GameScene extends Phaser.Scene {
   /**
    * Runs once per frame
    */
-  update(_time: number, _delta: number): void {
+  update(_time: number, delta: number): void {
+    this.accumulatedDeltaTime += delta
+    while (this.accumulatedDeltaTime >= FIXED_TIME_STEP) {
+      this.accumulatedDeltaTime -= FIXED_TIME_STEP
+      this.fixedUpdate()
+    }
+  }
+
+  /**
+   * Runs once per game tick; do game logic here
+   */
+  fixedUpdate() {
     // Skip loop if not loaded
     if (!this.room || !this.currentPlayerSprite) return
 
-    // Interpolate all player sprite positions
+    // Interpolate other player sprite positions
     for (const sessionId in this.playerSprites) {
       // Skip interpolation for the current player
       if (sessionId === this.room.sessionId) continue
 
+      // Get stored sprite reference w/ included server position data
       const sprite = this.playerSprites[sessionId]
       const { serverX, serverY } = sprite.data.values
 
+      // Interpolate local sprite position towards server position
       sprite.x = Phaser.Math.Linear(sprite.x, serverX, 0.2)
       sprite.y = Phaser.Math.Linear(sprite.y, serverY, 0.2)
     }
@@ -131,7 +146,7 @@ class GameScene extends Phaser.Scene {
     this.room.send(0, this.playerInput)
 
     // Calculate the player movement locally on the client to predict the next location (reduces perceived latency)
-    // WARNING: these movement calculations should match the server's same calculations
+    // NOTE: This logic should match the logic on the server (TODO: put in a shared package)
     if (this.playerInput.left) {
       this.currentPlayerSprite.x -= MOVEMENT_VELOCITY
     } else if (this.playerInput.right) {
