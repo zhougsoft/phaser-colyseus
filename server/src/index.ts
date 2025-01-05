@@ -1,4 +1,4 @@
 import { listen } from '@colyseus/tools'
-import { colyseusConfig, PORT } from './config'
+import { colyseusConfig, HOST_PORT } from './config'
 
-listen(colyseusConfig, PORT)
+listen(colyseusConfig, HOST_PORT)

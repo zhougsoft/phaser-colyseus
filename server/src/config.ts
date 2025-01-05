@@ -1,8 +1,11 @@
 import { monitor } from '@colyseus/monitor'
 import config from '@colyseus/tools'
+import cors from 'cors'
 import { MainRoom } from './room'
 
-export const PORT = 6969
+// These constants should match the client's constants (TODO: put in a shared package)
+const HOST_DOMAIN = 'localhost'
+export const HOST_PORT = 6969
 
 export const colyseusConfig = config({
   initializeGameServer: gameServer => {
@@ -16,13 +19,11 @@ export const colyseusConfig = config({
   },
 
   initializeExpress: app => {
-    /**
-     * Bind your custom express routes here:
-     * Read more: https://expressjs.com/en/starter/basic-routing.html
-     */
-    app.get('/ping', (req, res) => {
-      res.send('pong')
-    })
+    app.use(
+      cors({
+        origin: HOST_DOMAIN,
+      })
+    )
 
     /**
      * Use @colyseus/monitor
