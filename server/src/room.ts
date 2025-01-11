@@ -3,16 +3,10 @@ import { MapSchema, Schema, type } from '@colyseus/schema'
 import {
   MAP_WIDTH,
   MAP_HEIGHT,
-  MOVEMENT_VELOCITY,
   FIXED_TIME_STEP,
+  computePlayerMovementDeltas,
+  type InputPayload,
 } from 'shared'
-
-interface InputPayload {
-  up: number
-  down: number
-  left: number
-  right: number
-}
 
 export class Player extends Schema {
   @type('number') x: number
@@ -32,22 +26,13 @@ export class MainRoom extends Room<State> {
    */
   fixedUpdate(deltaTime: number) {
     // Loop through each player and dequeue/apply their inputs
-    // NOTE: This logic should match the logic on the client (TODO: put in a shared package)
     this.state.players.forEach(player => {
-      let playerInput: InputPayload
+      let inputPayload: InputPayload
 
-      while ((playerInput = player.inputQueue.shift())) {
-        if (playerInput.left) {
-          player.x -= MOVEMENT_VELOCITY
-        } else if (playerInput.right) {
-          player.x += MOVEMENT_VELOCITY
-        }
-
-        if (playerInput.up) {
-          player.y -= MOVEMENT_VELOCITY
-        } else if (playerInput.down) {
-          player.y += MOVEMENT_VELOCITY
-        }
+      while ((inputPayload = player.inputQueue.shift())) {
+        const { deltaX, deltaY } = computePlayerMovementDeltas(inputPayload)
+        player.x += deltaX
+        player.y += deltaY
       }
     })
   }

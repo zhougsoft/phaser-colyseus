@@ -4,8 +4,9 @@ import Phaser from 'phaser'
 import {
   MAP_WIDTH,
   MAP_HEIGHT,
-  MOVEMENT_VELOCITY,
   FIXED_TIME_STEP,
+  computePlayerMovementDeltas,
+  type InputPayload,
 } from 'shared'
 import characterImage from './assets/character.png'
 
@@ -32,9 +33,8 @@ class GameScene extends Phaser.Scene {
   playerSprites: { [sessionId: string]: Phaser.GameObjects.Sprite } = {}
   currentPlayerSprite: Phaser.GameObjects.Sprite | null = null
 
-  // User input state
   cursorKeys?: Phaser.Types.Input.Keyboard.CursorKeys
-  playerInput = {
+  playerInput: InputPayload = {
     left: false,
     right: false,
     up: false,
@@ -149,19 +149,10 @@ class GameScene extends Phaser.Scene {
     // Send updated local player input to server as payload for movement calculation
     this.room.send(0, this.playerInput)
 
-    // Calculate the player movement locally on the client to predict the next location (reduces perceived latency)
-    // NOTE: This logic should match the logic on the server (TODO: put in a shared package)
-    if (this.playerInput.left) {
-      this.currentPlayerSprite.x -= MOVEMENT_VELOCITY
-    } else if (this.playerInput.right) {
-      this.currentPlayerSprite.x += MOVEMENT_VELOCITY
-    }
-
-    if (this.playerInput.up) {
-      this.currentPlayerSprite.y -= MOVEMENT_VELOCITY
-    } else if (this.playerInput.down) {
-      this.currentPlayerSprite.y += MOVEMENT_VELOCITY
-    }
+    // Calculate player movement locally on the client to predict next location (reduces perceived latency)
+    const { deltaX, deltaY } = computePlayerMovementDeltas(this.playerInput)
+    this.currentPlayerSprite.x += deltaX
+    this.currentPlayerSprite.y += deltaY
   }
 }
 
