@@ -114,14 +114,14 @@ class GameScene extends Phaser.Scene {
     this.accumulatedDeltaTime += delta
     while (this.accumulatedDeltaTime >= FIXED_TIME_STEP) {
       this.accumulatedDeltaTime -= FIXED_TIME_STEP
-      this.fixedUpdate()
+      this.fixedUpdate(delta)
     }
   }
 
   /**
    * Runs once per game tick; do game logic here
    */
-  fixedUpdate() {
+  fixedUpdate(_deltaTime: number) {
     // Skip loop if not loaded
     if (!this.room || !this.currentPlayerSprite) return
 

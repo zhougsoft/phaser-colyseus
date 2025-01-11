@@ -24,7 +24,7 @@ export class MainRoom extends Room<State> {
   /**
    * Runs once per game tick; this is the core game loop, do logic updates here to synchronize across clients
    */
-  fixedUpdate(deltaTime: number) {
+  fixedUpdate(_deltaTime: number) {
     // Loop through each player and dequeue/apply their inputs
     this.state.players.forEach(player => {
       let inputPayload: InputPayload
@@ -40,7 +40,7 @@ export class MainRoom extends Room<State> {
   /**
    * Runs when the room is initialized
    */
-  onCreate(options: any) {
+  onCreate(_options: any) {
     // Initialize the room state
     this.setState(new State())
 
@@ -67,7 +67,7 @@ export class MainRoom extends Room<State> {
   /**
    * Runs when a client successfully joins the room
    */
-  onJoin(client: Client, options: any) {
+  onJoin(client: Client, _options: any) {
     console.log(client.sessionId, 'joined!')
 
     // create Player instance & place it randomly on the map
@@ -83,7 +83,7 @@ export class MainRoom extends Room<State> {
   /**
    * When a client leaves the room
    */
-  onLeave(client: Client, consented: boolean) {
+  onLeave(client: Client, _consented: boolean) {
     this.state.players.delete(client.sessionId)
     console.log(client.sessionId, 'left!')
   }
