@@ -1,11 +1,11 @@
 import { Room, Client } from '@colyseus/core'
 import { MapSchema, Schema, type } from '@colyseus/schema'
-
-// These constants should match the clients's constants (TODO: put in a shared package)
-const MAP_WIDTH = 800
-const MAP_HEIGHT = 600
-const MOVEMENT_VELOCITY = 2
-const FIXED_TIME_STEP = 1000 / 60
+import {
+  MAP_WIDTH,
+  MAP_HEIGHT,
+  MOVEMENT_VELOCITY,
+  FIXED_TIME_STEP,
+} from 'shared'
 
 interface InputPayload {
   up: number

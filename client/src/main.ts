@@ -1,17 +1,18 @@
 import type { MapSchema, Schema } from '@colyseus/schema'
 import { Client, Room } from 'colyseus.js'
 import Phaser from 'phaser'
+import {
+  MAP_WIDTH,
+  MAP_HEIGHT,
+  MOVEMENT_VELOCITY,
+  FIXED_TIME_STEP,
+} from 'shared'
 import characterImage from './assets/character.png'
 
-// These constants should match the server's constants (TODO: put in a shared package)
+// @TODO: make these configurable
 const HOST_DOMAIN = 'localhost'
 const HOST_PORT = 6969
-const MAP_WIDTH = 800
-const MAP_HEIGHT = 600
-const MOVEMENT_VELOCITY = 2
-const FIXED_TIME_STEP = 1000 / 60
 
-// Client-side constants
 const SERVER_URL = `ws://${HOST_DOMAIN}:${HOST_PORT}`
 
 interface Player extends Schema {
